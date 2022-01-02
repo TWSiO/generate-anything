@@ -1,16 +1,21 @@
-import { Generator, ValueOrArray } from "./Generator";
+import { Generator } from "./Generator";
 import { Seed } from "./util";
 import seedrandom from "seed-random";
 
-export class TableGenerator<T> implements Generator<T> {
-    values: T[];
+// Create either a value or another generator
+export class TableGenerator implements Generator {
+    readonly name: string;
+    private seed: Seed;
+    values: any[];
 
-    constructor(values: T[]) {
+    constructor(name: string, seed: Seed, values: any[]) {
+        this.name = name;
+        this.seed = seed;
         this.values = values;
     }
 
-    generate(seed: Seed): ValueOrArray<T> {
-        const rng = seedrandom(seed);
+    generate(): any {
+        const rng = seedrandom(this.seed);
 
         return this.values[Math.floor(rng() * this.values.length)];
     }
