@@ -1,17 +1,16 @@
 import { GeneratorRepr, TableGeneratorRepr, EntityGeneratorRepr } from "./GeneratorRepr";
 import { Seed } from "./util";
 import * as _ from "lodash/fp";
-
+import seedrandom from "seed-random";
 
 export const root: unique symbol = Symbol();
 
-/*
 export type Unevaluated = {
     kind: "unevaluated"
+    seed: Seed;
 };
 
-export const unevaluated: Unevaluated = { kind: "unevaluated" };
-*/
+//export const unevaluated: Unevaluated = { kind: "unevaluated" };
 
 // Probably change to an interface and others to classes.
 export abstract class Node<T> {
@@ -25,7 +24,7 @@ export abstract class Node<T> {
     }
 }
 
-export class Unevaluated<T> extends Node<T> {
+//export class Unevaluated<T> extends Node<T> {
     /*
     readonly parent: (typeof root) | Node<T>;
     readonly generator: GeneratorRepr<T>;
@@ -45,6 +44,23 @@ export class Unevaluated<T> extends Node<T> {
         this.generator = generator;
     }
     */
+//}
+
+function generate<T>(seed: Seed, parent: (typeof root) | Node<T>, gen: GeneratorRepr<T>): Value<T> {
+    switch(gen.kind) {
+        case "table":
+            return new Table(
+                parent,
+                gen,
+                seed,
+            );
+        case "entity":
+            return new Entity(
+                parent,
+                gen,
+                seed,
+            );
+    }
 }
 
 export class Scalar<T> {
@@ -65,36 +81,84 @@ export class Table<T> extends Node<T> {
     constructor(parent: (typeof root) | Node<T>, generator: TableGeneratorRepr<T>, seed: Seed) {
         super(parent, seed);
         this.generator = generator;
-        this.value = new Unevaluated(parent, generator, seed);
+        this.value = {
+            kind: "unevaluated",
+            seed: String(seedrandom(this.seed)()),
+        };
     }
 
-    function get(): Value<T> {
+    get(): Value<T> {
+        if (this.value.kind !== "unevaluated") {
+            return this.value;
+        }
+
+        const rng = seedrandom(this.seed);
+        const repr = this.generator;
+
+        const result = repr.table[Math.floor(rng() * repr.table.length)];
+
+        if (typeof result === "object" && "kind" in result) {
+            switch(result.kind) {
+                case "entity":
+                    this.value = new Entity(
+                        this,
+                        result,
+                        String(rng()),
+                    );
+                    break;
+                case "table":
+                    this.value = new Table(
+                        this,
+                        result,
+                        String(rng()),
+                    );
+                    break;
+            }
+        } else {
+            this.value = new Scalar(result);
+        }
+
+        return this.value;
     }
 }
 
 export class Entity<T> extends Node<T> {
     readonly kind: "entity" = "entity";
     readonly generator: EntityGeneratorRepr<T>;
-    value: { [K in string]: Unevaluated | Value<T> };
+    private value: { [K in string]: Unevaluated | Value<T> };
 
     constructor(parent: (typeof root) | Node<T>, generator: EntityGeneratorRepr<T>, seed: Seed) {
         super(parent, seed);
         this.generator = generator;
+        const rng = seedrandom(seed);
 
-        this.value = new Unevaluated(parent, generator, seed);
-    /*
-        this.super(parent, generator, seed);
-
-        const accumulator = (accum, val) => {
-            accum[val] = unevaluated;
+        const accumulator = (accum: { [K in string]: Unevaluated }, val: string) => {
+            accum[val] = {
+                kind: "unevaluated",
+                seed: String(rng()),
+            };
             return accum;
         };
 
-        this.value = Object.keys(generator.attributes).reduce(accumulator, {});
-    */
+        const keys = Object.keys(generator.attributes);
+        // Ensuring consistant and reproducable order of generated seeds.
+        keys.sort((left, right) => ("" + left).localeCompare(right));
+        this.value = keys.reduce(accumulator, {});
     }
 
-    function get(key: string): Value<T> {
+    get(key: string): Value<T> {
+        if (!(key in this.generator.attributes)) {
+            throw new Error("Key not in entity");
+        }
+
+        const possibleValue = this.value[key];
+        if (possibleValue.kind !== "unevaluated") {
+            return possibleValue;
+        }
+
+        const repr = this.generator.attributes[key];
+
+        return generate(possibleValue.seed, this, repr);
     }
 }
 
