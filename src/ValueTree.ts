@@ -120,6 +120,10 @@ export class Table<T> extends Node<T> {
 
         return this.value;
     }
+
+    static newRoot<T>(seed: Seed, gen: TableGeneratorRepr<T>): Table<T> {
+        return new this(root, gen, seed);
+    }
 }
 
 export class Entity<T> extends Node<T> {
@@ -160,11 +164,15 @@ export class Entity<T> extends Node<T> {
 
         return generate(possibleValue.seed, this, repr);
     }
+
+    static newRoot<T>(seed: Seed, gen: EntityGeneratorRepr<T>): Entity<T> {
+        return new this(root, gen, seed);
+    }
 }
 
 export type Value<T> = Scalar<T> | Table<T> | Entity<T>;
 
-export function newRoot<T>(seed: Seed, generator: GeneratorRepr<T>) {
+export function newRoot<T>(seed: Seed, generator: GeneratorRepr<T>): Node<T> {
     switch (generator.kind) {
         case "entity":
             return new Entity(root, generator, seed);
