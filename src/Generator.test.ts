@@ -1,7 +1,19 @@
 import { generate, generateLevels } from "./Generator";
-import { Node, root, unevaluated, newRoot } from "./ValueTree";
+import { Node, root, unevaluated, newRoot, Table, Value, Entity } from "./ValueTree";
 import { GeneratorRepr, createEntity, createTable, TableGeneratorRepr } from "./GeneratorRepr";
 import seedrandom from "seed-random";
+
+function expectScalar<T>(val: Value<T>, expected: T): T {
+    switch (val.kind) {
+        case "scalar":
+            expect(val.leaf).toBe(expected);
+            break;
+        default:
+            expect(true).toBe(false);
+    }
+
+    return val.leaf;
+}
 
 test("Smoke", () => {
     const table: TableGeneratorRepr<string> = createTable("Test table",
@@ -12,11 +24,15 @@ test("Smoke", () => {
         ]
     );
 
-    const rt = newRoot("smoke", table);
+    const rt = Table.newRoot("smoke", table);
 
-    generate(rt);
-
-    expect(rt.value.value).toBe("a");
+    switch (rt.get().kind) {
+        case "scalar":
+            expect(rt.get().leaf).toBe("a");
+            break;
+        default:
+            expect(true).toBe(false);
+    }
 });
 
 test("Small", () => {
@@ -38,16 +54,18 @@ test("Small", () => {
         }
     );
 
-    const rt = newRoot("1", person)
+    const rt = Entity.newRoot("1", person);
 
-    generate(rt);
-
-    for (const attr in rt.value) {
-        generate(rt.value[attr]);
+    /*
+    for (const attr in Object.keys(rt.generator.attributes)) {
+        rt.get(attr);
     }
+    */
 
-    expect(rt.value["Favorite color"].value.value).toBe("red");
-    expect(rt.value["Favorite food"].value.value).toBe("banana");
+   expect(rt.get("Favorite color").kind).toBe("table");
+    expectScalar(rt.get("Favorite color").get(), "red");
+   expect(rt.get("Favorite food").kind).toBe("table");
+    expectScalar(rt.get("Favorite food").get(), "banana");
 });
 
 const tool = createTable<string>(
@@ -79,13 +97,12 @@ const person = createEntity(
 
 const personRoot = newRoot("1", person)
 
-test.each([personRoot, null])("generateLevels 1", (p, expected) => {
-    expect(p.value).toBe(unevaluated);
+test.each([[personRoot, null]])("generateLevels 1", (p, expected) => {
+;
+    expectScalar(p.get("Starting equipment").get().get(), "drum");
 
     //console.log(p);
 
-    generateLevels(1, p);
-    console.log(p);
 
     /*
     console.log(p);
@@ -122,3 +139,4 @@ test.each([personRoot, null])("generateLevels 1", (p, expected) => {
 //     expect(p.value.value["Starting equipment"].value.value).not.toBe(unevaluated);
 //     //console.log(p.value.value["Starting equipment"].value.value);
 // });
+    // */
