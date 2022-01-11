@@ -10,11 +10,7 @@ export type Unevaluated = {
     seed: Seed;
 };
 
-//export const unevaluated: Unevaluated = { kind: "unevaluated" };
-
-// Probably change to an interface and others to classes.
 export abstract class Node<T> {
-    //evaluated: boolean;
     readonly parent: (typeof root) | Node<T>;
     readonly seed: Seed;
 
@@ -23,28 +19,6 @@ export abstract class Node<T> {
         this.seed = seed;
     }
 }
-
-//export class Unevaluated<T> extends Node<T> {
-    /*
-    readonly parent: (typeof root) | Node<T>;
-    readonly generator: GeneratorRepr<T>;
-    readonly seed: Seed;
-
-    constructor(parent: (typeof root) | Node<T>, generator: TableGeneratorRepr<T>, seed: Seed) {
-        this.parent = parent;
-        this.generator = generator;
-        this.seed = seed;
-    }
-
-   readonly generator: GeneratorRepr<T>;
-
-    constructor(parent: (typeof root) | Node<T>, generator: TableGeneratorRepr<T>, seed: Seed) {
-        super(parent, seed);
-
-        this.generator = generator;
-    }
-    */
-//}
 
 function generate<T>(seed: Seed, parent: (typeof root) | Node<T>, gen: GeneratorRepr<T>): Value<T> {
     switch(gen.kind) {
@@ -64,7 +38,6 @@ function generate<T>(seed: Seed, parent: (typeof root) | Node<T>, gen: Generator
 }
 
 export class Scalar<T> {
-    //evaluated: boolean = true;
     readonly kind: "scalar" = "scalar";
     readonly leaf: T;
 
