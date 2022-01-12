@@ -3,6 +3,8 @@ import { Seed } from "./util";
 import * as _ from "lodash/fp";
 import seedrandom from "seed-random";
 
+// TODO You should really only be able to create roots. Don't need general constructors.
+
 export const root: unique symbol = Symbol();
 
 export type Unevaluated = {
