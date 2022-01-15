@@ -19,7 +19,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GeneerateRepr = exports.newRoot = exports.Entity = exports.Table = exports.Scalar = exports.root = exports.util = void 0;
+exports.GeneratorRepr = exports.newRoot = exports.Entity = exports.Table = exports.Scalar = exports.root = exports.util = void 0;
 exports.util = __importStar(require("./util"));
 var ValueTree_1 = require("./ValueTree");
 Object.defineProperty(exports, "root", { enumerable: true, get: function () { return ValueTree_1.root; } });
@@ -27,4 +27,4 @@ Object.defineProperty(exports, "Scalar", { enumerable: true, get: function () { 
 Object.defineProperty(exports, "Table", { enumerable: true, get: function () { return ValueTree_1.Table; } });
 Object.defineProperty(exports, "Entity", { enumerable: true, get: function () { return ValueTree_1.Entity; } });
 Object.defineProperty(exports, "newRoot", { enumerable: true, get: function () { return ValueTree_1.newRoot; } });
-exports.GeneerateRepr = __importStar(require("./GeneratorRepr"));
+exports.GeneratorRepr = __importStar(require("./GeneratorRepr"));
