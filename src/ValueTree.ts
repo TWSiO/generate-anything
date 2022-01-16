@@ -140,6 +140,15 @@ export class Entity<T> extends Node<T> {
         return generate(possibleValue.seed, this, repr);
     }
 
+    getAll(): { [K in string]: Value<T> } {
+        let all: { [K in string]: Value<T> } = {};
+        for (const n in this.generator.attributes) {
+            all[n] = this.get(n);
+        }
+
+        return all;
+    }
+
     static newRoot<T>(seed: Seed, gen: EntityGeneratorRepr<T>): Entity<T> {
         return new this(root, gen, seed);
     }

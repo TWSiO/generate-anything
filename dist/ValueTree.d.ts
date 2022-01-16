@@ -29,6 +29,9 @@ export declare class Entity<T> extends Node<T> {
     private value;
     constructor(parent: (typeof root) | Node<T>, generator: EntityGeneratorRepr<T>, seed: Seed);
     get(key: string): Value<T>;
+    getAll(): {
+        [K in string]: Value<T>;
+    };
     static newRoot<T>(seed: Seed, gen: EntityGeneratorRepr<T>): Entity<T>;
 }
 export declare type Value<T> = Scalar<T> | Table<T> | Entity<T>;

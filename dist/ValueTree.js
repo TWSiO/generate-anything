@@ -95,6 +95,13 @@ class Entity extends Node {
         const repr = this.generator.attributes[key];
         return generate(possibleValue.seed, this, repr);
     }
+    getAll() {
+        let all = {};
+        for (const n in this.generator.attributes) {
+            all[n] = this.get(n);
+        }
+        return all;
+    }
     static newRoot(seed, gen) {
         return new this(exports.root, gen, seed);
     }

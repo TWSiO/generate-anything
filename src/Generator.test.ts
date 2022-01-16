@@ -1,6 +1,7 @@
 import { Node, root, unevaluated, newRoot, Table, Value, Entity } from "./ValueTree";
 import { GeneratorRepr, createEntity, createTable, TableGeneratorRepr } from "./GeneratorRepr";
 import seedrandom from "seed-random";
+import * as _ from "lodash/fp";
 
 function expectScalar<T>(val: Value<T>, expected: T): T {
     switch (val.kind) {
@@ -91,8 +92,10 @@ const person = createEntity(
 const personRoot = newRoot("1", person)
 
 test.each([[personRoot, null]])("generateLevels 1", (p, expected) => {
-;
     expectScalar(p.get("Starting equipment").get().get(), "drum");
 
 });
 
+test.each([[personRoot, null]])("Entity getAll", (root, expected) => {
+    console.log(root.getAll());
+});
