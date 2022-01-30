@@ -1,17 +1,18 @@
-import { GeneratorRepr, TableGeneratorRepr, EntityGeneratorRepr } from "./GeneratorRepr";
+import { GeneratorSchema, TableGeneratorSchema, EntityGeneratorSchema } from "./GeneratorSchema";
 import { Seed } from "./util";
 import * as _ from "lodash/fp";
 import seedrandom from "seed-random";
 
-// TODO You should really only be able to create roots. Don't need general constructors.
+export const root: unique symbol = Symbol("root");
 
-export const root: unique symbol = Symbol();
-
-export type Unevaluated = {
+type Unevaluated = {
     kind: "unevaluated"
     seed: Seed;
 };
 
+/**
+ * For types of generators that can be considered part of a "tree" with a "parent" generating node.
+ */
 export abstract class Node<T> {
     readonly parent: (typeof root) | Node<T>;
     readonly seed: Seed;
@@ -22,7 +23,7 @@ export abstract class Node<T> {
     }
 }
 
-function generate<T>(seed: Seed, parent: (typeof root) | Node<T>, gen: GeneratorRepr<T>): Value<T> {
+function generate<T>(seed: Seed, parent: (typeof root) | Node<T>, gen: GeneratorSchema<T>): Value<T> {
     switch(gen.kind) {
         case "table":
             return new Table(
@@ -37,6 +38,8 @@ function generate<T>(seed: Seed, parent: (typeof root) | Node<T>, gen: Generator
                 seed,
             );
     }
+
+    throw new Error("Node value still unevaluated after generate");
 }
 
 export class Scalar<T> {
@@ -50,10 +53,10 @@ export class Scalar<T> {
 
 export class Table<T> extends Node<T> {
     readonly kind: "table" = "table";
-    readonly generator: TableGeneratorRepr<T>;
+    readonly generator: TableGeneratorSchema<T>;
     private value: Unevaluated | Value<T>;
 
-    constructor(parent: (typeof root) | Node<T>, generator: TableGeneratorRepr<T>, seed: Seed) {
+    constructor(parent: (typeof root) | Node<T>, generator: TableGeneratorSchema<T>, seed: Seed) {
         super(parent, seed);
         this.generator = generator;
         this.value = {
@@ -73,40 +76,21 @@ export class Table<T> extends Node<T> {
         const result = repr.table[Math.floor(rng() * repr.table.length)];
 
         if (typeof result === "object" && "kind" in result) {
-            switch(result.kind) {
-                case "entity":
-                    this.value = new Entity(
-                        this,
-                        result,
-                        String(rng()),
-                    );
-                    break;
-                case "table":
-                    this.value = new Table(
-                        this,
-                        result,
-                        String(rng()),
-                    );
-                    break;
-            }
+            this.value = generate(String(rng()), this, result);
         } else {
             this.value = new Scalar(result);
         }
 
         return this.value;
     }
-
-    static newRoot<T>(seed: Seed, gen: TableGeneratorRepr<T>): Table<T> {
-        return new this(root, gen, seed);
-    }
 }
 
 export class Entity<T> extends Node<T> {
     readonly kind: "entity" = "entity";
-    readonly generator: EntityGeneratorRepr<T>;
+    readonly generator: EntityGeneratorSchema<T>;
     private value: { [K in string]: Unevaluated | Value<T> };
 
-    constructor(parent: (typeof root) | Node<T>, generator: EntityGeneratorRepr<T>, seed: Seed) {
+    constructor(parent: (typeof root) | Node<T>, generator: EntityGeneratorSchema<T>, seed: Seed) {
         super(parent, seed);
         this.generator = generator;
         const rng = seedrandom(seed);
@@ -148,22 +132,10 @@ export class Entity<T> extends Node<T> {
 
         return all;
     }
-
-    static newRoot<T>(seed: Seed, gen: EntityGeneratorRepr<T>): Entity<T> {
-        return new this(root, gen, seed);
-    }
 }
 
 export type Value<T> = Scalar<T> | Table<T> | Entity<T>;
 
-export function newRoot<T>(seed: Seed, generator: GeneratorRepr<T>): Node<T> {
-    switch (generator.kind) {
-        case "entity":
-            return new Entity(root, generator, seed);
-
-        case "table":
-            return new Table(root, generator, seed);
-    }
-
-    throw new Error("Node value still unevaluated after generate");
+export function newRoot<T>(seed: Seed, gen: GeneratorSchema<T>) {
+    return generate(seed, root, gen);
 }

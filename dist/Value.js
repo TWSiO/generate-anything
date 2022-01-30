@@ -5,8 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.newRoot = exports.Entity = exports.Table = exports.Scalar = exports.Node = exports.root = void 0;
 const seed_random_1 = __importDefault(require("seed-random"));
-// TODO You should really only be able to create roots. Don't need general constructors.
-exports.root = Symbol();
+exports.root = Symbol("root");
+/**
+ * For types of generators that can be considered part of a "tree" with a "parent" generating node.
+ */
 class Node {
     constructor(parent, seed) {
         this.parent = parent;
@@ -21,6 +23,7 @@ function generate(seed, parent, gen) {
         case "entity":
             return new Entity(parent, gen, seed);
     }
+    throw new Error("Node value still unevaluated after generate");
 }
 class Scalar {
     constructor(value) {
@@ -47,22 +50,12 @@ class Table extends Node {
         const repr = this.generator;
         const result = repr.table[Math.floor(rng() * repr.table.length)];
         if (typeof result === "object" && "kind" in result) {
-            switch (result.kind) {
-                case "entity":
-                    this.value = new Entity(this, result, String(rng()));
-                    break;
-                case "table":
-                    this.value = new Table(this, result, String(rng()));
-                    break;
-            }
+            this.value = generate(String(rng()), this, result);
         }
         else {
             this.value = new Scalar(result);
         }
         return this.value;
-    }
-    static newRoot(seed, gen) {
-        return new this(exports.root, gen, seed);
     }
 }
 exports.Table = Table;
@@ -102,18 +95,9 @@ class Entity extends Node {
         }
         return all;
     }
-    static newRoot(seed, gen) {
-        return new this(exports.root, gen, seed);
-    }
 }
 exports.Entity = Entity;
-function newRoot(seed, generator) {
-    switch (generator.kind) {
-        case "entity":
-            return new Entity(exports.root, generator, seed);
-        case "table":
-            return new Table(exports.root, generator, seed);
-    }
-    throw new Error("Node value still unevaluated after generate");
+function newRoot(seed, gen) {
+    return generate(seed, exports.root, gen);
 }
 exports.newRoot = newRoot;

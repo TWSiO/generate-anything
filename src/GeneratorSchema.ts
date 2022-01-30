@@ -1,21 +1,19 @@
-// Maybe call these "Generator Components"
-
-export type EntityGeneratorRepr<T> = {
+export type EntityGeneratorSchema<T> = {
     kind: "entity";
     name: string;
-    attributes: Record<string, GeneratorRepr<T>>;
+    attributes: Record<string, GeneratorSchema<T>>;
 }
 
 // Only thing that currently is random.
-export type TableGeneratorRepr<T> = {
+export type TableGeneratorSchema<T> = {
     kind: "table";
     name: string;
-    table: (T | GeneratorRepr<T>)[];
+    table: (T | GeneratorSchema<T>)[];
 }
 
-export type GeneratorRepr<T> = EntityGeneratorRepr<T> | TableGeneratorRepr<T>;
+export type GeneratorSchema<T> = EntityGeneratorSchema<T> | TableGeneratorSchema<T>;
 
-export function createEntity<T>(name: string, attributes: Record<string, GeneratorRepr<T>>) {
+export function createEntitySchema<T>(name: string, attributes: Record<string, GeneratorSchema<T>>) {
     return {
         kind: "entity",
         name: name,
@@ -23,7 +21,7 @@ export function createEntity<T>(name: string, attributes: Record<string, Generat
     }
 }
 
-export function createTable<T>(name: string, table: (T | GeneratorRepr<T>)[]) {
+export function createTableSchema<T>(name: string, table: (T | GeneratorSchema<T>)[]) {
     return {
         kind: "table",
         name: name,

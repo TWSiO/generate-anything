@@ -1,5 +1,5 @@
-import { Node, root, unevaluated, newRoot, Table, Value, Entity } from "./ValueTree";
-import { GeneratorRepr, createEntity, createTable, TableGeneratorRepr } from "./GeneratorRepr";
+import { Node, root, unevaluated, newRoot, Table, Value, Entity } from "./Value";
+import { GeneratorSchema, createEntitySchema, createTableSchema, TableGeneratorSchema } from "./GeneratorSchema";
 import seedrandom from "seed-random";
 import * as _ from "lodash/fp";
 
@@ -16,7 +16,7 @@ function expectScalar<T>(val: Value<T>, expected: T): T {
 }
 
 test("Smoke", () => {
-    const table: TableGeneratorRepr<string> = createTable("Test table",
+    const table: TableGeneratorSchema<string> = createTable("Test table",
         [
             "a",
             "b",
@@ -24,7 +24,7 @@ test("Smoke", () => {
         ]
     );
 
-    const rt = Table.newRoot("smoke", table);
+    const rt = newRoot("smoke", table);
 
     switch (rt.get().kind) {
         case "scalar":
@@ -54,7 +54,7 @@ test("Small", () => {
         }
     );
 
-    const rt = Entity.newRoot("1", person);
+    const rt = newRoot("1", person);
 
    expect(rt.get("Favorite color").kind).toBe("table");
     expectScalar(rt.get("Favorite color").get(), "red");
