@@ -3,6 +3,8 @@ import { GeneratorSchema, createEntitySchema, createTableSchema, TableGeneratorS
 import seedrandom from "seed-random";
 import * as _ from "lodash/fp";
 
+// TODO make more extensive tests.
+
 function expectScalar<T>(val: Value<T>, expected: T): T {
     switch (val.kind) {
         case "scalar":
@@ -16,7 +18,7 @@ function expectScalar<T>(val: Value<T>, expected: T): T {
 }
 
 test("Smoke", () => {
-    const table: TableGeneratorSchema<string> = createTable("Test table",
+    const table: TableGeneratorSchema<string> = createTableSchema("Test table",
         [
             "a",
             "b",
@@ -36,17 +38,17 @@ test("Smoke", () => {
 });
 
 test("Small", () => {
-    const color = createTable<string>(
+    const color = createTableSchema<string>(
         "Color",
         ["red", "blue", "green"]
     );
     
-    const food = createTable(
+    const food = createTableSchema(
         "Food",
         ["apple", "banana", "carrot"]
     );
 
-    const person = createEntity(
+    const person = createEntitySchema(
         "Person",
         {
             "Favorite color": color,
@@ -62,26 +64,26 @@ test("Small", () => {
     expectScalar(rt.get("Favorite food").get(), "banana");
 });
 
-const tool = createTable<string>(
+const tool = createTableSchema<string>(
     "Tool",
     ["wrench", "hammer", "screwdriver"]
 );
-const musicalInstrument = createTable<string>(
+const musicalInstrument = createTableSchema<string>(
     "Musical instrument",
     ["guitar", "trumpet", "drum"]
 );
 
-const equipment = createTable<string>(
+const equipment = createTableSchema<string>(
     "Equipment",
     [tool, musicalInstrument]
 );
 
-const food = createTable(
+const food = createTableSchema(
     "Food",
     ["apple", "banana", "carrot"]
 );
 
-const person = createEntity(
+const person = createEntitySchema(
     "Person",
     {
         "Starting equipment": equipment,
@@ -94,8 +96,4 @@ const personRoot = newRoot("1", person)
 test.each([[personRoot, null]])("generateLevels 1", (p, expected) => {
     expectScalar(p.get("Starting equipment").get().get(), "drum");
 
-});
-
-test.each([[personRoot, null]])("Entity getAll", (root, expected) => {
-    console.log(root.getAll());
 });
