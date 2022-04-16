@@ -89,7 +89,7 @@ class Entity extends Node {
         return generate(possibleValue.seed, this, repr);
     }
     getAll() {
-        let all = {};
+        const all = {};
         for (const n in this.generator.attributes) {
             all[n] = this.get(n);
         }
